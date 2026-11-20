@@ -1,0 +1,142 @@
+
+/* ຮູບແບບພື້ນຖານຂອງ Website */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+button,
+input,
+textarea,
+select {
+  font-family: "Noto Sans Lao", "Noto Sans", sans-serif;
+}
+
+body {
+  min-width: 320px;
+  background: #f1f5f9;
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ໃຫ້ App ໃຊ້ພື້ນທີ່ເຕັມໜ້າເວັບ */
+.app-container {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Language Switch */
+.language-switch {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  max-width: 900px;
+  margin: 0 auto 20px;
+}
+
+.language-switch button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+}
+
+.language-switch button:hover {
+  background: #1d4ed8;
+}
+
+/* Welcome Card */
+.welcome-card {
+  width: calc(100% - 40px);
+  max-width: 900px;
+  margin: auto;
+  padding: 40px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.welcome-card h1 {
+  color: #1e40af;
+}
+
+.welcome-card h2 {
+  color: #334155;
+}
+
+/* Menu */
+.menu-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.menu-list p {
+  padding: 16px;
+  margin: 0;
+  background: #eff6ff;
+  border-radius: 8px;
+  color: #1e40af;
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+button {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+p {
+  line-height: 1.8;
+}
+
+/* ກຳນົດຟອນພາສາລາວ */
+*,
+*::before,
+*::after {
+  font-family: "Noto Sans Lao", "Noto Sans", sans-serif !important;
+}
+
+.welcome-card h1,
+.welcome-card h2 {
+  font-weight: 600;
+  line-height: 1.7;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .menu-list {
+    grid-template-columns: 1fr;
+  }
+
+  .welcome-card {
+    width: calc(100% - 24px);
+    padding: 20px;
+  }
+}
