@@ -1,13 +1,28 @@
+
 const express = require("express");
 const router = express.Router();
 
-const { createUser } = require("../controllers/userController");
-const { verifyToken, checkRole } = require("../middleware/authMiddleware");
+const {
+  createUser,
+  getUsers,
+  updateUser
+} = require("../controllers/userController");
 
-// ກວດສອບ Token ກ່ອນເຂົ້າໃຊ້ API
+const {
+  verifyToken,
+  checkRole
+} = require("../middleware/authMiddleware");
+
+// ກວດສອບ Token ທຸກ Route
 router.use(verifyToken);
 
-// ເພີ່ມບັນຊີ Doctor ແລະ Staff (Admin ເທົ່ານັ້ນ)
+// ດຶງລາຍຊື່ Users
+router.get("/", checkRole("Admin"), getUsers);
+
+// ສ້າງ User ໃໝ່
 router.post("/", checkRole("Admin"), createUser);
+
+// ແກ້ໄຂຂໍ້ມູນ User
+router.put("/:id", checkRole("Admin"), updateUser);
 
 module.exports = router;

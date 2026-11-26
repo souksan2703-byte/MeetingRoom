@@ -1,0 +1,176 @@
+
+/* ຮູບແບບໜ້າ Bookings */
+
+.bookings-page {
+  padding: 28px;
+  width: 100%;
+  color: #1e293b;
+}
+
+.bookings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.bookings-header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.bookings-header p {
+  color: #64748b;
+  margin-top: 6px;
+}
+
+.bookings-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 25px;
+}
+
+.booking-summary-card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.booking-summary-card h3 {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0 0 12px;
+}
+
+.booking-summary-card strong {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.bookings-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.booking-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  min-width: 260px;
+}
+
+.booking-search input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+}
+
+.booking-filter {
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 14px;
+}
+
+.bookings-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+}
+
+.bookings-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 850px;
+}
+
+.bookings-table th {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  padding: 16px;
+}
+
+.bookings-table td {
+  padding: 16px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 14px;
+}
+
+.bookings-table tr:hover td {
+  background: #f8fafc;
+}
+
+.booking-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.booking-status.pending {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.booking-status.approved {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.booking-status.rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.bookings-empty {
+  text-align: center;
+  padding: 45px 20px;
+  color: #94a3b8;
+}
+
+@media (max-width: 900px) {
+  .bookings-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .bookings-page {
+    padding: 16px;
+  }
+
+  .bookings-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .bookings-header h1 {
+    font-size: 22px;
+  }
+
+  .booking-search {
+    min-width: 100%;
+  }
+}

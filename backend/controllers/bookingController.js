@@ -225,12 +225,17 @@ exports.createBooking = async (req, res) => {
   }
 };
 // ຟັງຊັນອະນຸມັດການຈອງ
+// ຟັງຊັນອະນຸມັດການຈອງ
 exports.approveBooking = async (req, res) => {
-  const transaction = new sql.Transaction();
+  let transaction;
+  let transactionStarted = false;
 
   try {
     const bookingId = parseInt(req.params.id, 10);
     const adminId = req.user.userId;
+
+    const pool = await getPool();
+    transaction = new sql.Transaction(pool);
 
     if (!Number.isInteger(bookingId) || bookingId <= 0) {
       return res.status(400).json({
@@ -240,10 +245,9 @@ exports.approveBooking = async (req, res) => {
     }
 
     await transaction.begin();
+    transactionStarted = true;
 
-    const request = new sql.Request(transaction);
-
-    const bookingResult = await request
+    const bookingResult = await new sql.Request(transaction)
       .input("bookingId", sql.Int, bookingId)
       .query(`
         SELECT *
@@ -253,6 +257,7 @@ exports.approveBooking = async (req, res) => {
 
     if (bookingResult.recordset.length === 0) {
       await transaction.rollback();
+      transactionStarted = false;
 
       return res.status(404).json({
         success: false,
@@ -264,6 +269,7 @@ exports.approveBooking = async (req, res) => {
 
     if (booking.status !== "Pending") {
       await transaction.rollback();
+      transactionStarted = false;
 
       return res.status(400).json({
         success: false,
@@ -271,6 +277,7 @@ exports.approveBooking = async (req, res) => {
       });
     }
 
+    // ກວດສອບວ່າມີການຈອງຊ້ຳຫຼືບໍ່
     const conflictResult = await new sql.Request(transaction)
       .input("roomId", sql.Int, booking.room_id)
       .input("bookingDate", sql.Date, booking.booking_date)
@@ -290,6 +297,7 @@ exports.approveBooking = async (req, res) => {
 
     if (conflictResult.recordset.length > 0) {
       await transaction.rollback();
+      transactionStarted = false;
 
       return res.status(409).json({
         success: false,
@@ -297,6 +305,7 @@ exports.approveBooking = async (req, res) => {
       });
     }
 
+    // ອັບເດດສະຖານະການຈອງ
     await new sql.Request(transaction)
       .input("bookingId", sql.Int, bookingId)
       .input("adminId", sql.Int, adminId)
@@ -309,6 +318,7 @@ exports.approveBooking = async (req, res) => {
         WHERE booking_id = @bookingId
       `);
 
+    // ບັນທຶກປະຫວັດການອະນຸມັດ
     await new sql.Request(transaction)
       .input("bookingId", sql.Int, bookingId)
       .input("adminId", sql.Int, adminId)
@@ -325,7 +335,27 @@ exports.approveBooking = async (req, res) => {
         )
       `);
 
+    // ສ້າງແຈ້ງເຕືອນໃຫ້ຜູ້ທີ່ຈອງ
+    await new sql.Request(transaction)
+      .input("userId", sql.Int, booking.user_id)
+      .input("bookingId", sql.Int, bookingId)
+      .input("title", sql.NVarChar(200), "ການຈອງຖືກອະນຸມັດ")
+      .input(
+        "message",
+        sql.NVarChar(500),
+        `ການຈອງ "${booking.meeting_title}" ຂອງທ່ານໄດ້ຮັບການອະນຸມັດ`
+      )
+      .query(`
+        INSERT INTO Notifications (
+          user_id, booking_id, title, message
+        )
+        VALUES (
+          @userId, @bookingId, @title, @message
+        )
+      `);
+
     await transaction.commit();
+    transactionStarted = false;
 
     return res.json({
       success: true,
@@ -337,10 +367,12 @@ exports.approveBooking = async (req, res) => {
     });
 
   } catch (error) {
-    try {
-      await transaction.rollback();
-    } catch (rollbackError) {
-      console.error("Rollback error:", rollbackError);
+    if (transaction && transactionStarted) {
+      try {
+        await transaction.rollback();
+      } catch (rollbackError) {
+        console.error("Rollback error:", rollbackError);
+      }
     }
 
     console.error("Approve booking error:", error);
@@ -354,13 +386,18 @@ exports.approveBooking = async (req, res) => {
 
 
 // ຟັງຊັນປະຕິເສດການຈອງ
+// ຟັງຊັນປະຕິເສດການຈອງ
 exports.rejectBooking = async (req, res) => {
-  const transaction = new sql.Transaction();
+  let transaction;
+  let transactionStarted = false;
 
   try {
     const bookingId = parseInt(req.params.id, 10);
     const adminId = req.user.userId;
-    const { remarks } = req.body;
+    const { remarks } = req.body || {};
+
+    const pool = await getPool();
+    transaction = new sql.Transaction(pool);
 
     if (!Number.isInteger(bookingId) || bookingId <= 0) {
       return res.status(400).json({
@@ -370,17 +407,20 @@ exports.rejectBooking = async (req, res) => {
     }
 
     await transaction.begin();
+    transactionStarted = true;
 
+    // ດຶງຂໍ້ມູນການຈອງ
     const bookingResult = await new sql.Request(transaction)
       .input("bookingId", sql.Int, bookingId)
       .query(`
-        SELECT status
+        SELECT user_id, meeting_title, status
         FROM Bookings WITH (UPDLOCK, HOLDLOCK)
         WHERE booking_id = @bookingId
       `);
 
     if (bookingResult.recordset.length === 0) {
       await transaction.rollback();
+      transactionStarted = false;
 
       return res.status(404).json({
         success: false,
@@ -388,8 +428,11 @@ exports.rejectBooking = async (req, res) => {
       });
     }
 
-    if (bookingResult.recordset[0].status !== "Pending") {
+    const booking = bookingResult.recordset[0];
+
+    if (booking.status !== "Pending") {
       await transaction.rollback();
+      transactionStarted = false;
 
       return res.status(400).json({
         success: false,
@@ -397,10 +440,13 @@ exports.rejectBooking = async (req, res) => {
       });
     }
 
+    const rejectionRemarks = remarks || "Rejected by Admin";
+
+    // ອັບເດດສະຖານະ ແລະ ບັນທຶກປະຫວັດ
     await new sql.Request(transaction)
       .input("bookingId", sql.Int, bookingId)
       .input("adminId", sql.Int, adminId)
-      .input("remarks", sql.NVarChar(500), remarks || "Rejected by Admin")
+      .input("remarks", sql.NVarChar(500), rejectionRemarks)
       .query(`
         UPDATE Bookings
         SET status = 'Rejected',
@@ -417,7 +463,27 @@ exports.rejectBooking = async (req, res) => {
         );
       `);
 
+    // ສ້າງແຈ້ງເຕືອນໃຫ້ຜູ້ທີ່ຈອງ
+    await new sql.Request(transaction)
+      .input("userId", sql.Int, booking.user_id)
+      .input("bookingId", sql.Int, bookingId)
+      .input("title", sql.NVarChar(200), "ການຈອງຖືກປະຕິເສດ")
+      .input(
+        "message",
+        sql.NVarChar(500),
+        `ການຈອງ "${booking.meeting_title}" ຂອງທ່ານຖືກປະຕິເສດ. ເຫດຜົນ: ${rejectionRemarks}`
+      )
+      .query(`
+        INSERT INTO Notifications (
+          user_id, booking_id, title, message
+        )
+        VALUES (
+          @userId, @bookingId, @title, @message
+        )
+      `);
+
     await transaction.commit();
+    transactionStarted = false;
 
     return res.json({
       success: true,
@@ -429,10 +495,12 @@ exports.rejectBooking = async (req, res) => {
     });
 
   } catch (error) {
-    try {
-      await transaction.rollback();
-    } catch (rollbackError) {
-      console.error("Rollback error:", rollbackError);
+    if (transaction && transactionStarted) {
+      try {
+        await transaction.rollback();
+      } catch (rollbackError) {
+        console.error("Rollback error:", rollbackError);
+      }
     }
 
     console.error("Reject booking error:", error);
