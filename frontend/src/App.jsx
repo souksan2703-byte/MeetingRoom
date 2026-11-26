@@ -2,10 +2,12 @@
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 
+import Users from "./pages/Users";
 import Login from "./pages/auth/Login";
 import Dashboard from "./pages/Dashboard";
 import Bookings from "./pages/Bookings";
 import MainLayout from "./components/layout/MainLayout";
+import Rooms from "./pages/Rooms";
 
 // ກວດສອບການ Login ແລະສະແດງ Layout ຮ່ວມກັນ
 function ProtectedLayout() {
@@ -41,6 +43,8 @@ function App() {
       <Route element={<ProtectedLayout />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/bookings" element={<Bookings />} />
+        <Route path="/rooms" element={<Rooms />} />
+        <Route path="/users" element={<Users />} />
       </Route>
 
       {/* ເສັ້ນທາງທີ່ບໍ່ມີ */}
